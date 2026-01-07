@@ -2,40 +2,35 @@
 #include <TFT_eSPI.h> 
 
 TFT_eSPI tft = TFT_eSPI(); 
-// Sprite kullanımını kaldırdık, doğrudan ekrana çizim yapacağız (Flicker'ı önlemek için)
-
-// Pin Tanımları
+ 
 #define BTN_UP    16
 #define BTN_DOWN  17
 #define BTN_LEFT  18
 #define BTN_RIGHT 8
 #define BUZZER_PIN 14 
-
-// Ekran Ayarları
+ 
 #define SCREEN_W  240
 #define SCREEN_H  320
 #define CELL_SIZE 10
 #define TOP_BAR   30  
-#define BORDER_W  2   // Çerçeve kalınlığı
-
-// Oyun Alanı Hesaplamaları
+#define BORDER_W  2   
+ 
 #define PLAY_AREA_H (SCREEN_H - TOP_BAR - (2 * BORDER_W))
 #define PLAY_AREA_W (SCREEN_W - (2 * BORDER_W))
 #define GRID_W    (PLAY_AREA_W / CELL_SIZE)
 #define GRID_H    (PLAY_AREA_H / CELL_SIZE)
-#define START_X   BORDER_W // Oyun alanının başlangıç X koordinatı
-#define START_Y   (TOP_BAR + BORDER_W) // Oyun alanının başlangıç Y koordinatı
+#define START_X   BORDER_W  
+#define START_Y   (TOP_BAR + BORDER_W)  
 
 #define BASE_SPEED 120  
-
-// Renk Paleti
-#define COL_BG      0x2589  // Yeşil
-#define COL_BAR     0x0000  // Siyah
-#define COL_SNAKE   0x001F  // Lacivert
-#define COL_HEAD    0xF800  // Kırmızı
-#define COL_FOOD    0xF81F  // Magenta
-#define COL_TEXT    0xFFFF  // Beyaz
-#define COL_BORDER  0xFFFF  // Beyaz
+ 
+#define COL_BG      0x2589  
+#define COL_BAR     0x0000   
+#define COL_SNAKE   0x001F  
+#define COL_HEAD    0xF800  
+#define COL_FOOD    0xF81F  
+#define COL_TEXT    0xFFFF  
+#define COL_BORDER  0xFFFF  
 
 struct Point {
   int x, y;
@@ -49,7 +44,7 @@ int dirY = -1;
 bool gameOver = false;
 int score = 0;
 int currentSpeed = BASE_SPEED;
-Point oldTail; // Kuyruğu silmek için eski pozisyonu tutar
+Point oldTail; 
 
 void setup() {
   Serial.begin(115200);
@@ -62,18 +57,17 @@ void setup() {
  
   tft.init();
   tft.setRotation(2); 
-  tft.fillScreen(COL_BG); // Başlangıçta ekranı bir kez temizle
+  tft.fillScreen(COL_BG);  
 
-  drawStaticUI(); // Arayüzü çiz
+  drawStaticUI() 
   resetGame();
 }
 
 void loop() {
   if (!gameOver) {
     handleInput();
-    updateGame(); // Çizim işlemleri artık update içinde (Partial Update)
-  } else {
-    // Game Over durumunda tuş kontrolü
+    updateGame(); 
+  } else { 
     if (digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW || 
         digitalRead(BTN_LEFT) == LOW || digitalRead(BTN_RIGHT) == LOW) {
       resetGame();
@@ -98,20 +92,16 @@ void handleInput() {
   }
 }
  
-void updateGame() { 
-  // 1. Kuyruk silme hazırlığı: En sondaki parçayı kaydet
+void updateGame() {  
   oldTail = snake[snakeLength - 1];
-
-  // 2. Yılanı kaydır
+ 
   for (int i = snakeLength - 1; i > 0; i--) {
     snake[i] = snake[i - 1];
   }
- 
-  // 3. Kafayı hareket ettir
+  
   snake[0].x += dirX;
   snake[0].y += dirY;
- 
-  // --- ÇARPIŞMA KONTROLLERİ ---
+  
   if (snake[0].x < 0 || snake[0].x >= GRID_W || snake[0].y < 0 || snake[0].y >= GRID_H) {
     triggerGameOver();
     return;
@@ -123,43 +113,35 @@ void updateGame() {
       return;
     }
   }
- 
-  // --- YEMEK KONTROLÜ ---
+  
   bool ateFood = false;
   if (snake[0].x == food.x && snake[0].y == food.y) {
     ateFood = true;
     score += 10;
     snakeLength++;
-    
-    // Kuyruğu geri ekle (Büyüdüğü için silinmemeli)
+     
     snake[snakeLength - 1] = oldTail;
 
     tone(BUZZER_PIN, 1000, 50);
-    drawScore(); // Sadece skor değişince güncelle
-    
-    // Hızlandırma
+    drawScore();  
+     
     int speedDecrease = (score / 100) * 10;
     currentSpeed = BASE_SPEED - speedDecrease;
     if (currentSpeed < 40) currentSpeed = 40;
 
-    spawnFood(); // Yeni yem çiz
+    spawnFood(); 
   }
-
-  // --- EKRANA ÇİZİM (PARTIAL UPDATE) ---
-  
-  // A. Eğer yemek yenmediyse, eski kuyruğu sil (Arkaplan rengine boya)
+ 
   if (!ateFood) {
     tft.fillRect(START_X + (oldTail.x * CELL_SIZE), 
                  START_Y + (oldTail.y * CELL_SIZE), 
                  CELL_SIZE, CELL_SIZE, COL_BG);
   }
-
-  // B. Yeni kafayı çiz
+ 
   tft.fillRoundRect(START_X + (snake[0].x * CELL_SIZE), 
                     START_Y + (snake[0].y * CELL_SIZE), 
                     CELL_SIZE - 1, CELL_SIZE - 1, 2, COL_HEAD);
-
-  // C. Bir önceki kafa parçasını gövde rengine çevir (Görsellik için)
+ 
   if (snakeLength > 1) {
     tft.fillRoundRect(START_X + (snake[1].x * CELL_SIZE), 
                       START_Y + (snake[1].y * CELL_SIZE), 
@@ -167,21 +149,16 @@ void updateGame() {
   }
 }
 
-void drawStaticUI() {
-  // Üst bar
-  tft.fillRect(0, 0, SCREEN_W, TOP_BAR, COL_BAR);
-  // Çerçeve
-  tft.drawRect(0, TOP_BAR, SCREEN_W, SCREEN_H - TOP_BAR, COL_BORDER);
-  // İlk skor
+void drawStaticUI() { 
+  tft.fillRect(0, 0, SCREEN_W, TOP_BAR, COL_BAR); 
+  tft.drawRect(0, TOP_BAR, SCREEN_W, SCREEN_H - TOP_BAR, COL_BORDER); 
   drawScore();
 }
 
-void drawScore() {
-  // Skoru yazdırmadan önce o bölgeyi temizle (Siyah ile)
-  // Bu flicker yapmaz çünkü çok küçük bir alan
+void drawScore() { 
   tft.fillRect(SCREEN_W / 2 + 10, 5, 100, 20, COL_BAR); 
   
-  tft.setTextColor(COL_TEXT, COL_BAR); // Arkaplan rengini de belirttik
+  tft.setTextColor(COL_TEXT, COL_BAR);  
   tft.setTextSize(2);
   tft.setTextDatum(MC_DATUM);
   tft.drawString("SCORE: " + String(score), SCREEN_W / 2, TOP_BAR / 2 + 2); 
@@ -224,26 +201,22 @@ void spawnFood() {
         break;
       }
     }
-  }
-  // Yemi çiz
+  } 
   tft.fillCircle(START_X + (food.x * CELL_SIZE) + (CELL_SIZE/2), 
                  START_Y + (food.y * CELL_SIZE) + (CELL_SIZE/2), 
                  (CELL_SIZE/2) - 1, COL_FOOD);
 }
 
-void resetGame() {
-  // Ekranı temizle (Sadece oyun alanını)
+void resetGame() { 
   tft.fillRect(BORDER_W, TOP_BAR + BORDER_W, PLAY_AREA_W, PLAY_AREA_H, COL_BG);
-  
-  // UI'ı tazele
+   
   drawStaticUI();
 
   snakeLength = 3;
   snake[0] = {GRID_W/2, GRID_H/2};  
   snake[1] = {GRID_W/2, GRID_H/2 + 1};
   snake[2] = {GRID_W/2, GRID_H/2 + 2};
-  
-  // İlk yılanı çiz
+   
   for(int i=0; i<snakeLength; i++) {
      uint16_t c = (i==0) ? COL_HEAD : COL_SNAKE;
      tft.fillRoundRect(START_X + (snake[i].x * CELL_SIZE), 
@@ -253,7 +226,7 @@ void resetGame() {
 
   dirX = 0; dirY = -1;
   score = 0;
-  drawScore(); // Skoru sıfırla
+  drawScore(); 
   currentSpeed = BASE_SPEED;
   gameOver = false;
   spawnFood();
