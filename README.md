@@ -100,3 +100,14 @@ If you enjoyed this project or found it useful, please consider supporting the c
 
 ---
 *Created by DsnIndustries - 2026*
+
+## Games
+Maze Escape: https://play.google.com/store/apps/details?id=com.DsnMechanics.MazeEscape
+
+Air Hockey: https://play.google.com/store/apps/details?id=com.DsnMechanics.AirHockey
+
+Click Challenge: https://play.google.com/store/apps/details?id=com.DsNMechanics.ClickChallenge
+
+Flying Triangels: https://play.google.com/store/apps/details?id=com.DsnMechanics.Triangle
+
+SkyScrapper : https://play.google.com/store/apps/details?id=com.DsnMechanics.SkyScraper
