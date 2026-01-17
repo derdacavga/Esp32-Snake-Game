@@ -22,7 +22,7 @@ This project serves as the first prototype for a larger goal: building a complet
 * **Misc:** Breadboard & Jumper Wires
 
 ## 🔌 Wiring & Pinout
-This project uses the **VSPI** (or specific hardware SPI) pins for the display.
+This project uses the **HSPI** (or specific hardware SPI) pins for the display.
 
 ### 🖥️ Display (ILI9341)
 | Display Pin | ESP32 Pin | Note |
